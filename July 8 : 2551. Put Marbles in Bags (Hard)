@@ -1,0 +1,24 @@
+class Solution {
+    public long putMarbles(int[] W, int k) {
+        int n = W.length;
+        if (k == n) return 0;
+        for (int i = 1; i < n; i++) W[i-1] = W[i] + W[i-1];
+        W[n-1] = Integer.MAX_VALUE;
+        Arrays.sort(W);
+
+        return max(W, k-1) - min(W, k-1);
+    }
+    
+    private long max(int[] W, int k) {
+        int n = W.length;
+        long res = 0;
+        for (int i = n-2; i >= n-k-1; i--) res += W[i];
+        return res;
+    }
+
+    private long min(int[] W, int k) {
+        long res = 0;
+        for (int i = 0; i < k; i++) res += W[i];
+        return res;
+    }
+}
