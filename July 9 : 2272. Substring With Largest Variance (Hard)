@@ -1,0 +1,49 @@
+import static java.lang.Math.max;
+
+class Solution {
+    public int largestVariance(String s) {
+        int[] A = s.chars()
+                   .distinct()
+                   .toArray();
+        char[] chars = s.toCharArray();
+        int output = 0;
+
+        for (int c1 : A)
+            for (int c2 : A)
+                if (c1 != c2)
+                    output = max(output, maxSubArray((char) c1, (char) c2, chars));
+
+        return output;
+    }
+
+    private static int maxSubArray(char c1, char c2, char[] chars) {
+        int glocal = 0, local = 0;
+        boolean globalHasB = false, localHasB = false;
+
+        for (char c : chars) {
+            int val = c == c1 ? 1 : c == c2 ? -1 : 0;
+            
+            local = val + max(0, local);
+
+            if (val == -1)
+                localHasB = true;
+            else if (local >= glocal) {
+                if (local > glocal)
+                    globalHasB = localHasB;
+                else
+                    globalHasB |= localHasB;
+
+                glocal = local;
+            }
+
+            if (local < 0)
+                localHasB = false;
+        }
+
+        return glocal - (1 - boolToInt(globalHasB));
+    }
+
+    private static int boolToInt(boolean b) {
+        return b ? 1 : 0;
+    }
+}
