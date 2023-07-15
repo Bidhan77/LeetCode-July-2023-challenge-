@@ -1,0 +1,54 @@
+class Solution {
+    private static class Event {
+		private int start;
+		private int end;
+		private int value;
+
+		public Event(int start, int end, int value) {
+			this.start = start;
+			this.end = end;
+			this.value = value;
+		}
+	}
+
+	private int binarySearch(Event events[], int index) {
+		int low = index + 1;
+		int high = events.length - 1;
+		int ans = events.length;
+		while (low <= high) {
+			int mid = low + (high - low) / 2;
+			if (events[mid].start > events[index].end) {
+				ans = Math.min(ans, mid);
+				high = mid - 1;
+			} else {
+				low = mid + 1;
+			}
+		}
+		return ans;
+	}
+
+	private int backtrack(Event[] events, int[][] dp, int index, int k) {
+		if (index == events.length || k == 0) {
+			return 0;
+		}
+		if (dp[index][k - 1] != -1) {
+			return dp[index][k - 1];
+		}
+		int idx = binarySearch(events, index);
+		dp[index][k - 1] = Math.max(events[index].value + backtrack(events, dp, idx, k - 1), backtrack(events, dp, index + 1, k));
+		return dp[index][k - 1];
+	}
+
+	public int maxValue(int[][] events, int k) {
+		Event eventArr[] = new Event[events.length];
+		for (int i = 0; i < events.length; i++) {
+			eventArr[i] = new Event(events[i][0], events[i][1], events[i][2]);
+		}
+		Arrays.sort(eventArr, (e1, e2) -> (e1.start - e2.start));
+		int[][] dp = new int[events.length][k];
+		for (int[] row : dp)
+			Arrays.fill(row, -1);
+
+		return backtrack(eventArr, dp, 0, k);
+	}
+}
