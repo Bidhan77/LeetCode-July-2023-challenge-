@@ -1,0 +1,89 @@
+class Solution {
+    private int[] talentPool;
+    private long[][] dp;
+
+    public int[] smallestSufficientTeam(String[] req_skills, List<List<String>> people) {
+        var skillMap = new HashMap<String, Integer>();
+        int skills = 0;
+        for (int i = 0; i < req_skills.length; i++) {
+            int skill = 1 << i;
+            skills = skills | skill;
+            skillMap.put(req_skills[i], skill);
+        }
+
+        dp = new long[skills + 1][people.size()];
+        for (long[] d1 : dp) Arrays.fill(d1, Long.MIN_VALUE);
+
+        talentPool = new int[people.size()];
+
+        // initialize talent pool
+        for (int i = 0; i < people.size(); i++) {
+            int skill = 0;
+            for (String s : people.get(i)) {
+                skill = skill | skillMap.get(s);
+            }
+            talentPool[i] = skill;
+        }
+
+        long bestTeam = makeTeam(skills, 0);
+        // convert long to team list
+        var teamList = new ArrayList<Integer>();
+        long op = 1L;
+        for (int i = 0; i < talentPool.length; i++) {
+            if ((bestTeam & op) >> i == 1L) teamList.add(i);
+            op = op << 1;
+        }
+
+        return teamList.stream().mapToInt(i -> i).toArray();
+    }
+
+    private long makeTeam(int targetSkills, int i) {
+        if (targetSkills == 0) {
+            return 0L;
+        }
+
+        if (i >= talentPool.length) return -1L;
+
+        if (dp[targetSkills][i] != Long.MIN_VALUE) return dp[targetSkills][i];
+
+        long currentPosition = 1L << i;
+
+        int matchedSkills = targetSkills & talentPool[i];
+
+        long team1 = -1L;
+        if (matchedSkills != 0) {
+            // if invite i-th person
+            int newTargetSkills = targetSkills ^ matchedSkills;
+            long subTeam = makeTeam(newTargetSkills, i + 1);
+            if (subTeam >= 0) {
+                team1 = subTeam | currentPosition;
+            }
+        }
+
+        // if not invite i-th person
+        long team2 = makeTeam(targetSkills, i + 1);
+
+        long bestTeam = -1L;
+        if (team1 > 0 && team2 > 0) {
+            bestTeam = countSize(team1) <= countSize(team2) ? team1 : team2;
+        } else if (team1 > 0) {
+            bestTeam = team1;
+        } else if (team2 > 0) {
+            bestTeam = team2;
+        }
+
+        dp[targetSkills][i] = bestTeam;
+        return bestTeam;
+    }
+
+    private int countSize(long team) {
+        int count = 0;
+        long op = 1L;
+        for (int i = 0; i < 64; i++) {
+            if ((team & op) >> i == 1L) count++;
+            op = op << 1;
+        }
+
+        return count;
+    }
+}
